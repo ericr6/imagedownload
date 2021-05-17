@@ -1,2 +1,6 @@
 iexec_out/
 iexec_in/
+chain.json
+deployed.json
+orders.json
+src/__pycache__/

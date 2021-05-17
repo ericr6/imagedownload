@@ -3,6 +3,7 @@ import os
 from tqdm import tqdm
 from bs4 import BeautifulSoup as bs
 from urllib.parse import urljoin, urlparse
+from iExecLog import loginfo, logcmd, Log
 
 
 def is_valid(url):
@@ -13,7 +14,7 @@ def is_valid(url):
     return bool(parsed.netloc) and bool(parsed.scheme)
 
 
-def get_all_images(url):
+def get_all_images(url, log):
     """
     Returns all image URLs on a single `url`
     """
@@ -35,6 +36,11 @@ def get_all_images(url):
         # finally, if the url is valid
         if is_valid(img_url):
             urls.append(img_url)
+    
+    log.add(str(len(urls)) +" images found")
+    for i in urls:
+	    log.add(i)
+	            
     return urls
 
 
@@ -64,27 +70,37 @@ def download(url, pathname):
             progress.update(len(data))
 
 
-def main(url, path):
+def main(url, path, log, ddl):
     # get all images
-    imgs = get_all_images(url)
-    for img in imgs:
-        # for each img, download it
-        download(img, path)
+    imgs = get_all_images(url, log)
+    log.add("start download")
+    print(path)
+    if ddl == "yes":
+        for img in imgs:
+		    # for each img, download it
+            download(img, path)
+        log.add("end download")
+    else:
+        log.add("no download")
     
-
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="This script downloads all images from a web page")
     parser.add_argument("url", help="The URL of the web page you want to download images")
     parser.add_argument("-p", "--path", help="The Directory you want to store your images, default is the domain of URL passed")
-    
+    parser.add_argument("--download", help="download = no or yes ")
+
     args = parser.parse_args()
+    print(args)
     url = args.url
     path = args.path
-
+    ddl =args.download
+    log=Log( str(path) + "/iexec.log")
+    log.add("start")
     if not path:
         # if path isn't specified, use the domain name of that url as the folder name
         path = urlparse(url).netloc
-    
-    main(url, path)
+    log.add("go to main")
+    main(url, path, log,ddl)
+    log.add("end program")
